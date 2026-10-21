@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # used when neither the command line nor the preset sets a value
 DEFAULTS = dict(data="wikipedia", epochs=3, eval_interval=250, ckpt_interval=500, dropout=0.0,
-                random_windows=False, init_from=None, patience=5)
+                random_windows=False, init_from=None, patience=5, eval_batches=100)
 
 PRESETS = {
     # GPT-2 small: 124M params. 16 x 1024 x 4 accum = 65,536 tokens per optimizer step.
@@ -48,6 +48,13 @@ PRESETS = {
     "english": dict(n_layer=12, n_head=12, n_embd=768, block_size=256,
                     batch_size=32, grad_accum=2, lr=6e-4, warmup_steps=300, grad_ckpt=False,
                     data="wikipedia", epochs=1, eval_interval=500, ckpt_interval=500, dropout=0.0),
+    # The same English stage sized for the laptop CPU (~184 tokens/s): a random 10M-token sample of
+    # the Wikipedia data. 8 x 256 x 2 accum = 4,096 tokens/step x 2,450 steps ~ 10M tokens ~ 15 h,
+    # run in 5-hour chunks (resume with --resume). Short validation (20 batches) to keep checks fast.
+    "english_cpu": dict(n_layer=12, n_head=12, n_embd=768, block_size=256,
+                        batch_size=8, grad_accum=2, lr=6e-4, warmup_steps=100, grad_ckpt=False,
+                        data="wikipedia", max_steps=2450, time_limit=5, eval_interval=250,
+                        eval_batches=20, ckpt_interval=150, dropout=0.0),
     # ~30M params with short context, sized for CPU experiments. 16 x 256 = 4,096 tokens per step.
     "small": dict(n_layer=6, n_head=6, n_embd=384, block_size=256,
                   batch_size=16, grad_accum=1, lr=1e-3, warmup_steps=200, grad_ckpt=False),
@@ -104,7 +111,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--max-steps", type=int, help="cap total optimizer steps (overrides --epochs)")
     p.add_argument("--time-limit", type=float, help="stop (with a checkpoint) after this many hours")
     p.add_argument("--eval-interval", type=int)
-    p.add_argument("--eval-batches", type=int, default=100, help="val batches per evaluation")
+    p.add_argument("--eval-batches", type=int, help="val batches per evaluation")
     p.add_argument("--ckpt-interval", type=int)
     p.add_argument("--patience", type=int,
                    help="stop after this many evals without val improvement (0 = never)")
