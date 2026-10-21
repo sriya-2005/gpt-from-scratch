@@ -1,0 +1,11 @@
+﻿fact,type,question,reference_answer,model_answer,auto_f1,human_grade,notes
+F02,relationship,What kind of woman did Jack take as his wife?,A rich widow.,"The bath-rooms, speaking-tubes, dress-closets and trouser-presses.",0.0,,
+F04,relationship,Who was the final person Jack painted in Chicago?,Mrs. Gideon Thwing.,The story does not say what the first person.,0.0,,
+F08,event,"After Jack retired, were his pictures worth more?","Yes. The price of ""Gisburns"" went up.",The quality of looking cleverer than he was.,0.154,,
+F12,event,Had Jack already stopped painting before his wedding?,Yes. He married nearly a year after he decided to stop painting.,No. He says he was fond enough to see her absurdity.,0.273,,
+F21,reason,Was envy of Grindle the reason Jack quit?,No. Grindle's pictures only became fashionable after Jack had quit.,"The bath-rooms, speaking-tubes, dress-closets and trouser-presses.",0.0,,
+F33,detail,Which artist drew the picture of the donkey?,Stroud.,Mrs. Stroud hung it among her husband's things.,0.222,,
+F38,event,What illness killed Stroud?,Heart disease; he died suddenly.,"He was; Mrs. Stroud gave him, and she only twenty-four hours.",0.125,,
+F42,detail,In which English county was the donkey drawing made?,Devonshire.,The story does not say what the first person.,0.0,,
+F48,event,Whose recommendation launched Victor Grindle's career?,Jack Gisburn's.,The story does not say what Jack's villa is called.,0.0,,
+F50,reason,What made Jack stop painting for good?,Trying to paint the dead Stroud showed him he had never really known how to paint; Stroud himself is the reason.,"He is a kind of naive suburban pride, the bath-tubes, the dress-closets and trouser-presses.",0.133,,
