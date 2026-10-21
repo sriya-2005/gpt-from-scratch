@@ -42,6 +42,12 @@ PRESETS = {
     # GPT-2 small: 124M params. 16 x 1024 x 4 accum = 65,536 tokens per optimizer step.
     "gpt2": dict(n_layer=12, n_head=12, n_embd=768, block_size=1024,
                  batch_size=16, grad_accum=4, lr=6e-4, warmup_steps=200, grad_ckpt=True),
+    # QA plan stage 1, for a CUDA GPU (e.g. Colab): the same 124M model learns general English
+    # from Wikipedia. Context 256 so the weights transfer to the 256-token story/QA stages.
+    # 32 x 256 x 2 accum = 16,384 tokens per step, ~7,980 steps per epoch.
+    "english": dict(n_layer=12, n_head=12, n_embd=768, block_size=256,
+                    batch_size=32, grad_accum=2, lr=6e-4, warmup_steps=300, grad_ckpt=False,
+                    data="wikipedia", epochs=1, eval_interval=500, ckpt_interval=500, dropout=0.0),
     # ~30M params with short context, sized for CPU experiments. 16 x 256 = 4,096 tokens per step.
     "small": dict(n_layer=6, n_head=6, n_embd=384, block_size=256,
                   batch_size=16, grad_accum=1, lr=1e-3, warmup_steps=200, grad_ckpt=False),

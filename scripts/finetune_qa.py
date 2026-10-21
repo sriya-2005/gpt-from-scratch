@@ -214,11 +214,15 @@ def main() -> None:
                   "train_qa_loss": sum(h["qa_loss"] for h in recent) / len(recent) if recent else float("nan")}
         evals.append(record)
 
-        improved = record["val_f1"] > best_f1 + 0.005
+        # The epoch-0 check is a baseline only. Before QA training the model rambles for the full
+        # answer length, and long answers share words with the reference by chance, which
+        # inflates F1; it must not count as the best checkpoint or start the early-stopping clock.
+        baseline = epoch == 0
+        improved = not baseline and record["val_f1"] > best_f1 + 0.005
         if improved:
             best_f1, evals_since_best = record["val_f1"], 0
             save(best_path, full=False, metrics=record)
-        else:
+        elif not baseline:
             evals_since_best += 1
         save(latest_path, full=True, metrics=record)
 
@@ -232,7 +236,8 @@ def main() -> None:
                    f"val answer loss {v_loss:.3f} | story loss {s_loss:.3f} | val F1 {record['val_f1']:.3f} "
                    f"({record['val_f1_half']}/{scores['n_answerable']} >= 0.5) | unanswerable "
                    f"{record['unanswerable_correct']}/{scores['n_unanswerable']} | "
-                   f"{'NEW BEST' if improved else f'best {best_f1:.3f}'} | {time.time() - t0:.0f}s")
+                   f"{'baseline' if baseline else 'NEW BEST' if improved else f'best {best_f1:.3f}'} | "
+                   f"{time.time() - t0:.0f}s")
         for r in scores["results"][:3]:
             tqdm.write(f"         Q: {r['question']}\n         A: {r['model_answer']!r}")
         if args.patience and evals_since_best >= args.patience:

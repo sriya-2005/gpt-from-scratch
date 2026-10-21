@@ -14,8 +14,6 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
-import torch
-
 from inference import ROOT, SamplingParams, load_model, load_tokenizer, stream_generate
 from qa_format import clean_answer, f1_score, load_split, prompt_text, says_unanswerable
 
@@ -67,7 +65,7 @@ def main() -> None:
     args = parser.parse_args()
 
     path = Path(args.ckpt) if Path(args.ckpt).is_absolute() else ROOT / args.ckpt
-    lm = load_model(path, torch.device("cpu"))
+    lm = load_model(path)  # GPU if available, else CPU
     tok = load_tokenizer()
     rows = load_split(args.split)
     print(f"Asking {path.relative_to(ROOT)} the {len(rows)} {args.split} questions...\n")

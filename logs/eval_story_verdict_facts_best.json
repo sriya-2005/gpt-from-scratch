@@ -1,0 +1,137 @@
+{
+  "checkpoint": "C:\\Users\\sriya\\OneDrive\\Desktop\\medhas\\models\\checkpoints\\verdict_facts\\best.pt",
+  "step": 425,
+  "story_tokens": 5145,
+  "trained_on_tokens": 5145,
+  "accuracy_trained_part": 0.974922239780426,
+  "accuracy_unseen_part": NaN,
+  "loss_trained_part": 0.10698005557060242,
+  "loss_unseen_part": NaN,
+  "sections": [
+    {
+      "part": "0-10%",
+      "trained_on": true,
+      "accuracy": 0.9415204524993896,
+      "loss": 0.29196396470069885
+    },
+    {
+      "part": "10-20%",
+      "trained_on": true,
+      "accuracy": 0.9747572541236877,
+      "loss": 0.07825793325901031
+    },
+    {
+      "part": "20-30%",
+      "trained_on": true,
+      "accuracy": 0.9883268475532532,
+      "loss": 0.05497908964753151
+    },
+    {
+      "part": "30-40%",
+      "trained_on": true,
+      "accuracy": 0.9786407947540283,
+      "loss": 0.07701168954372406
+    },
+    {
+      "part": "40-50%",
+      "trained_on": true,
+      "accuracy": 0.9863813519477844,
+      "loss": 0.08432947844266891
+    },
+    {
+      "part": "50-60%",
+      "trained_on": true,
+      "accuracy": 0.9747572541236877,
+      "loss": 0.10757792741060257
+    },
+    {
+      "part": "60-70%",
+      "trained_on": true,
+      "accuracy": 0.9747081995010376,
+      "loss": 0.0757705569267273
+    },
+    {
+      "part": "70-80%",
+      "trained_on": true,
+      "accuracy": 0.9902912378311157,
+      "loss": 0.08082165569067001
+    },
+    {
+      "part": "80-90%",
+      "trained_on": true,
+      "accuracy": 0.9805447459220886,
+      "loss": 0.10145673155784607
+    },
+    {
+      "part": "90-100%",
+      "trained_on": true,
+      "accuracy": 0.9592233300209045,
+      "loss": 0.11813368648290634
+    }
+  ],
+  "recitation": [
+    {
+      "at": "10%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 17,
+      "model": " had \"dragged him down.\" For Mrs. Gisburn--as such--as such--as such--as such--had not existed till",
+      "story": " had \"dragged him down.\" For Mrs. Gisburn--as such--had not existed till nearly a year after Jack's resolve had been"
+    },
+    {
+      "at": "20%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 30,
+      "model": ",\" was one of the axioms he laid down across the Sevres and silver of an exquisitely appointed luncheon-table, when,",
+      "story": ",\" was one of the axioms he laid down across the Sevres and silver of an exquisitely appointed luncheon-table, when,"
+    },
+    {
+      "at": "30%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 30,
+      "model": "ucked his pictures too? I haven't seen a single one in the house.\"\n\nA slight shade of constraint crossed Mrs. Gisburn's",
+      "story": "ucked his pictures too? I haven't seen a single one in the house.\"\n\nA slight shade of constraint crossed Mrs. Gisburn's"
+    },
+    {
+      "at": "40%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 1,
+      "model": ", so inevitably the background of her own picture--had lent herself in an unusual degree to the display of this false virtuosity. The picture was",
+      "story": ", as it were, so inevitably the background of her own picture--had lent herself in an unusual degree to the display of this false virtuosity"
+    },
+    {
+      "at": "50%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 10,
+      "model": " his pictures--so handsome, so charming, so charming, so disarming, that one longed to cry out: \"Be dissatisfied with your leisure",
+      "story": " his pictures--so handsome, so charming, so disarming, that one longed to cry out: \"Be dissatisfied with your leisure!\" as once"
+    },
+    {
+      "at": "60%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 30,
+      "model": " deprecating laugh: \"Yes--she's an awful simpleton, you know, Mrs. Stroud. Her only idea was to have him",
+      "story": " deprecating laugh: \"Yes--she's an awful simpleton, you know, Mrs. Stroud. Her only idea was to have him"
+    },
+    {
+      "at": "70%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 30,
+      "model": " forward. \"There: make yourself comfortable--and here are the cigars you like.\"\n\nHe placed them at my elbow and continued to wander up",
+      "story": " forward. \"There: make yourself comfortable--and here are the cigars you like.\"\n\nHe placed them at my elbow and continued to wander up"
+    },
+    {
+      "at": "80%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 30,
+      "model": "\"Once, when I looked up, I seemed to see a smile behind his close grayish beard--as if he had the secret, and were",
+      "story": "\"Once, when I looked up, I seemed to see a smile behind his close grayish beard--as if he had the secret, and were"
+    },
+    {
+      "at": "90%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 30,
+      "model": " Stroud--he just lay there quietly watching, and on his lips, through the gray beard, I seemed to hear the question: 'Are you",
+      "story": " Stroud--he just lay there quietly watching, and on his lips, through the gray beard, I seemed to hear the question: 'Are you"
+    }
+  ]
+}

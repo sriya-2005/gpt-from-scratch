@@ -38,7 +38,8 @@ def score_tokens(model, ids: list[int], block_size: int) -> tuple[torch.Tensor, 
     where it has the most real text before it.
     """
     n = len(ids)
-    tokens = torch.tensor(ids)
+    device = next(model.parameters()).device
+    tokens = torch.tensor(ids, device=device)
     correct = torch.zeros(n, dtype=torch.bool)
     losses = torch.zeros(n)
     window = block_size + 1                    # 256 inputs + 1 extra token for the last target
@@ -51,8 +52,8 @@ def score_tokens(model, ids: list[int], block_size: int) -> tuple[torch.Tensor, 
         logits, _ = model(x, y)
         logits = logits[0, :, :REAL_VOCAB]
         first = scored_up_to - (start + 1)     # skip targets an earlier window already scored
-        correct[scored_up_to:end] = (logits.argmax(-1) == y[0])[first:]
-        losses[scored_up_to:end] = F.cross_entropy(logits, y[0], reduction="none")[first:]
+        correct[scored_up_to:end] = (logits.argmax(-1) == y[0])[first:].cpu()
+        losses[scored_up_to:end] = F.cross_entropy(logits, y[0], reduction="none")[first:].cpu()
         scored_up_to = end
         if end == n:
             return correct[1:], losses[1:]     # position 0 has nothing before it to predict from
@@ -65,13 +66,14 @@ def recite(model, ids: list[int], pos: int, block_size: int) -> tuple[int, list[
 
     Returns (how many tokens matched the story in a row, the tokens it generated).
     """
-    idx = torch.tensor([ids[pos - PROMPT_LEN:pos]])
+    device = next(model.parameters()).device
+    idx = torch.tensor([ids[pos - PROMPT_LEN:pos]], device=device)
     generated = []
     for _ in range(RECITE_LEN):
         logits, _ = model(idx[:, -block_size:])
         next_id = int(logits[0, -1, :REAL_VOCAB].argmax())
         generated.append(next_id)
-        idx = torch.cat([idx, torch.tensor([[next_id]])], dim=1)
+        idx = torch.cat([idx, torch.tensor([[next_id]], device=device)], dim=1)
     run = 0
     for got, want in zip(generated, ids[pos:pos + RECITE_LEN]):
         if got != want:
@@ -81,7 +83,7 @@ def recite(model, ids: list[int], pos: int, block_size: int) -> tuple[int, list[
 
 
 def evaluate(ckpt: Path, ids: list[int], tok, trained_frac: float = TRAIN_FRAC) -> dict:
-    lm = load_model(ckpt, torch.device("cpu"))
+    lm = load_model(ckpt)                      # GPU if available, else CPU
     lm.model.eval()                            # turn off dropout so results are repeatable
     block = lm.config.block_size
     n = len(ids)
