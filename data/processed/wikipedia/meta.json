@@ -1,0 +1,19 @@
+{
+  "source": "wikimedia/wikipedia 20231101.en/train-00000-of-00041.parquet",
+  "tokenizer": "gpt2",
+  "vocab_size": 50257,
+  "eos_token_id": 50256,
+  "dtype": "uint16",
+  "seed": 42,
+  "val_frac": 0.2,
+  "train": {
+    "articles": 122756,
+    "tokens": 130798807,
+    "bytes": 562217329
+  },
+  "val": {
+    "articles": 30600,
+    "tokens": 32727794,
+    "bytes": 140416418
+  }
+}

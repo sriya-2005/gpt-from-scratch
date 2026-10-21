@@ -1,0 +1,19 @@
+{
+  "source": "jyothibindu/the-verdict the-verdict.txt",
+  "tokenizer": "gpt2",
+  "vocab_size": 50257,
+  "eos_token_id": 50256,
+  "dtype": "uint16",
+  "seed": 42,
+  "val_frac": 0.2,
+  "train": {
+    "articles": 1,
+    "tokens": 5146,
+    "bytes": 20492
+  },
+  "val": {
+    "articles": 1,
+    "tokens": 5146,
+    "bytes": 20492
+  }
+}

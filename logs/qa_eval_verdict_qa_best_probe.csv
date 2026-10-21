@@ -1,0 +1,11 @@
+﻿fact,type,question,reference_answer,model_answer,auto_f1,human_grade,notes
+F02,relationship,What kind of woman did Jack take as his wife?,A rich widow.,The story does not say.,0.0,,
+F04,relationship,Who was the final person Jack painted in Chicago?,Mrs. Gideon Thwing.,No.,0.0,,
+F08,event,"After Jack retired, were his pictures worth more?","Yes. The price of ""Gisburns"" went up.","No. He had always shirked, and was superb, and watched him.",0.0,,
+F12,event,Had Jack already stopped painting before his wedding?,Yes. He married nearly a year after he decided to stop painting.,"No. He says it would go up, and dingy; Mrs. Gisburn's welcome was not look at the Riviera, and that she wants to give him.",0.114,,
+F21,reason,Was envy of Grindle the reason Jack quit?,No. Grindle's pictures only became fashionable after Jack had quit.,The story does not say.,0.0,,
+F33,detail,Which artist drew the picture of the donkey?,Stroud.,The story does not say.,0.0,,
+F38,event,What illness killed Stroud?,Heart disease; he died suddenly.,The story does not say.,0.0,,
+F42,detail,In which English county was the donkey drawing made?,Devonshire.,"A ""It's not say.",0.0,,
+F48,event,Whose recommendation launched Victor Grindle's career?,Jack Gisburn's.,The story does not say.,0.0,,
+F50,reason,What made Jack stop painting for good?,Trying to paint the dead Stroud showed him he had never really known how to paint; Stroud himself is the reason.,"A smile behind his own lair't see how people don't see it, as if Stroud's career of the reason.",0.111,,

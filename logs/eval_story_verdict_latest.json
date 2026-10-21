@@ -1,0 +1,137 @@
+{
+  "checkpoint": "C:\\Users\\sriya\\OneDrive\\Desktop\\medhas\\models\\checkpoints\\verdict\\latest.pt",
+  "step": 112,
+  "story_tokens": 5145,
+  "trained_on_tokens": 4116,
+  "accuracy_trained_part": 0.455407053232193,
+  "accuracy_unseen_part": 0.1000971794128418,
+  "loss_trained_part": 3.061948299407959,
+  "loss_unseen_part": 7.131704330444336,
+  "sections": [
+    {
+      "part": "0-10%",
+      "trained_on": true,
+      "accuracy": 0.5360623598098755,
+      "loss": 2.6435935497283936
+    },
+    {
+      "part": "10-20%",
+      "trained_on": true,
+      "accuracy": 0.41941747069358826,
+      "loss": 3.2247536182403564
+    },
+    {
+      "part": "20-30%",
+      "trained_on": true,
+      "accuracy": 0.4338521361351013,
+      "loss": 3.239962100982666
+    },
+    {
+      "part": "30-40%",
+      "trained_on": true,
+      "accuracy": 0.42912620306015015,
+      "loss": 3.2358038425445557
+    },
+    {
+      "part": "40-50%",
+      "trained_on": true,
+      "accuracy": 0.4377431869506836,
+      "loss": 3.1094470024108887
+    },
+    {
+      "part": "50-60%",
+      "trained_on": true,
+      "accuracy": 0.48543688654899597,
+      "loss": 2.9300882816314697
+    },
+    {
+      "part": "60-70%",
+      "trained_on": true,
+      "accuracy": 0.4533073902130127,
+      "loss": 3.028136730194092
+    },
+    {
+      "part": "70-80%",
+      "trained_on": true,
+      "accuracy": 0.4485436975955963,
+      "loss": 3.0825490951538086
+    },
+    {
+      "part": "80-90%",
+      "trained_on": false,
+      "accuracy": 0.0719844326376915,
+      "loss": 7.596778392791748
+    },
+    {
+      "part": "90-100%",
+      "trained_on": false,
+      "accuracy": 0.12815533578395844,
+      "loss": 6.667534351348877
+    }
+  ],
+  "recitation": [
+    {
+      "at": "10%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 1,
+      "model": " had been his pictures with a failurely--and that I had to have been no one of Jack's him. It was that he was _ in",
+      "story": " had \"dragged him down.\" For Mrs. Gisburn--as such--had not existed till nearly a year after Jack's resolve had been"
+    },
+    {
+      "at": "20%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 1,
+      "model": ",\" she had been his pictures of the room.\n\n\"Oh, at the picture,\" she said.\n\n\"--the now it was",
+      "story": ",\" was one of the axioms he laid down across the Sevres and silver of an exquisitely appointed luncheon-table, when,"
+    },
+    {
+      "at": "30%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " I had been his eyes had been the room.\n\n\"Oh, and it. Gisburn, you know.\"\n\n\n\n\"",
+      "story": "ucked his pictures too? I haven't seen a single one in the house.\"\n\nA slight shade of constraint crossed Mrs. Gisburn's"
+    },
+    {
+      "at": "40%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " it happened? I had been been you in a little \"strong to have been\n\n\n\"--the_ drawing-rooms to have been his",
+      "story": ", as it were, so inevitably the background of her own picture--had lent herself in an unusual degree to the display of this false virtuosity"
+    },
+    {
+      "at": "50%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " on his pictures, and I had been his painting--and it to have been no--the_ to have been been his pictures. Gisburn",
+      "story": " his pictures--so handsome, so charming, so disarming, that one longed to cry out: \"Be dissatisfied with your leisure!\" as once"
+    },
+    {
+      "at": "60%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " little: \" Jack's an an you know.\n\n\"Oh, at the picture to have been him. Stroud--his he was a",
+      "story": " deprecating laugh: \"Yes--she's an awful simpleton, you know, Mrs. Stroud. Her only idea was to have him"
+    },
+    {
+      "at": "70%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " to the picture it to have been the room.\n\n\"Oh, and Jack's an with a little: \"'s an you know. And",
+      "story": " forward. \"There: make yourself comfortable--and here are the cigars you like.\"\n\nHe placed them at my elbow and continued to wander up"
+    },
+    {
+      "at": "80%",
+      "continuation_seen_in_training": false,
+      "tokens_right_in_a_row": 0,
+      "model": "\n\n\n\n\n\n\"Oh, the picture; and Mrs. Gisburn's his pictures with him. I had to have women in",
+      "story": "\"Once, when I looked up, I seemed to see a smile behind his close grayish beard--as if he had the secret, and were"
+    },
+    {
+      "at": "90%",
+      "continuation_seen_in_training": false,
+      "tokens_right_in_a_row": 2,
+      "model": " Stroud's I had been been you of the picture was just manage to have been his painting.\n\n\n\n\n\"Oh, you in",
+      "story": " Stroud--he just lay there quietly watching, and on his lips, through the gray beard, I seemed to hear the question: 'Are you"
+    }
+  ]
+}

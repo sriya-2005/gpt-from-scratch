@@ -1,0 +1,137 @@
+{
+  "checkpoint": "C:\\Users\\sriya\\OneDrive\\Desktop\\medhas\\models\\checkpoints\\verdict\\best.pt",
+  "step": 72,
+  "story_tokens": 5145,
+  "trained_on_tokens": 4116,
+  "accuracy_trained_part": 0.2311057150363922,
+  "accuracy_unseen_part": 0.0903790071606636,
+  "loss_trained_part": 4.526986598968506,
+  "loss_unseen_part": 6.91835355758667,
+  "sections": [
+    {
+      "part": "0-10%",
+      "trained_on": true,
+      "accuracy": 0.23781676590442657,
+      "loss": 4.4699530601501465
+    },
+    {
+      "part": "10-20%",
+      "trained_on": true,
+      "accuracy": 0.21165049076080322,
+      "loss": 4.733859539031982
+    },
+    {
+      "part": "20-30%",
+      "trained_on": true,
+      "accuracy": 0.22957198321819305,
+      "loss": 4.660676956176758
+    },
+    {
+      "part": "30-40%",
+      "trained_on": true,
+      "accuracy": 0.21359223127365112,
+      "loss": 4.647078514099121
+    },
+    {
+      "part": "40-50%",
+      "trained_on": true,
+      "accuracy": 0.21011672914028168,
+      "loss": 4.649160861968994
+    },
+    {
+      "part": "50-60%",
+      "trained_on": true,
+      "accuracy": 0.26019418239593506,
+      "loss": 4.237966537475586
+    },
+    {
+      "part": "60-70%",
+      "trained_on": true,
+      "accuracy": 0.22762645781040192,
+      "loss": 4.417879581451416
+    },
+    {
+      "part": "70-80%",
+      "trained_on": true,
+      "accuracy": 0.25825244188308716,
+      "loss": 4.399381160736084
+    },
+    {
+      "part": "80-90%",
+      "trained_on": false,
+      "accuracy": 0.07782100886106491,
+      "loss": 7.320505142211914
+    },
+    {
+      "part": "90-100%",
+      "trained_on": false,
+      "accuracy": 0.10291261970996857,
+      "loss": 6.5169830322265625
+    }
+  ],
+  "recitation": [
+    {
+      "at": "10%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": "'s his \" I had been been it.\n\n\n\n\n\n\n\n\n\n\n\n\"I have a a a a a a",
+      "story": " had \"dragged him down.\" For Mrs. Gisburn--as such--had not existed till nearly a year after Jack's resolve had been"
+    },
+    {
+      "at": "20%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": "- with a one of the picture and he was I had been, and I had been I had to me. Gisburn.\n\n\"",
+      "story": ",\" was one of the axioms he laid down across the Sevres and silver of an exquisitely appointed luncheon-table, when,"
+    },
+    {
+      "at": "30%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " I had been my with a picture you of the picture.\n\n\n\n\n\n\n\n\n\"I was a a little and I had",
+      "story": "ucked his pictures too? I haven't seen a single one in the house.\"\n\nA slight shade of constraint crossed Mrs. Gisburn's"
+    },
+    {
+      "at": "40%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " it's \" I had been the picture.\n\n\n\n\n\n\n\n\n\n\n\n\"I have a a a and he was",
+      "story": ", as it were, so inevitably the background of her own picture--had lent herself in an unusual degree to the display of this false virtuosity"
+    },
+    {
+      "at": "50%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " and I had been his--and it.\n\n\n\n\n\n\n\n\"I he was a little me, and he was his a",
+      "story": " his pictures--so handsome, so charming, so disarming, that one longed to cry out: \"Be dissatisfied with your leisure!\" as once"
+    },
+    {
+      "at": "60%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " little and he was a little the you of the picture.\n\n\n\n\n\n\n\n\n\"I was a a a and he was",
+      "story": " deprecating laugh: \"Yes--she's an awful simpleton, you know, Mrs. Stroud. Her only idea was to have him"
+    },
+    {
+      "at": "70%",
+      "continuation_seen_in_training": true,
+      "tokens_right_in_a_row": 0,
+      "model": " to me, and he was his you the picture to have the picture to the picture.\n\n\n\n\n\n\n\n\n\n\n\n",
+      "story": " forward. \"There: make yourself comfortable--and here are the cigars you like.\"\n\nHe placed them at my elbow and continued to wander up"
+    },
+    {
+      "at": "80%",
+      "continuation_seen_in_training": false,
+      "tokens_right_in_a_row": 0,
+      "model": "\n\n\n\n\n\n\n\n\"I have and and he was a little, and he was a little my a a a and he was",
+      "story": "\"Once, when I looked up, I seemed to see a smile behind his close grayish beard--as if he had the secret, and were"
+    },
+    {
+      "at": "90%",
+      "continuation_seen_in_training": false,
+      "tokens_right_in_a_row": 0,
+      "model": " I had been my I had been my picture.\n\n\n\n\n\n\n\n\n\n\n\"I have a a a and he was",
+      "story": " Stroud--he just lay there quietly watching, and on his lips, through the gray beard, I seemed to hear the question: 'Are you"
+    }
+  ]
+}

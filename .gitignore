@@ -1,0 +1,17 @@
+# Python environment and caches
+.venv/
+__pycache__/
+*.pyc
+
+# Model weights: hundreds of MB to GB each (GitHub's limit is 100 MB per file)
+*.pt
+*.tmp
+
+# Downloaded and generated data (rebuild with scripts/prepare_data.py)
+data/raw/20231101.en/
+data/raw/**/.cache/
+data/raw/.cache/
+data/processed/**/*.bin
+
+# Local copy of the scripts made before the QA work (git history replaces it)
+scripts_backup_before_qa/
