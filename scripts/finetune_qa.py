@@ -11,9 +11,19 @@ Every --eval-every epochs the model answers the validation questions, and the ch
 the best answer score (word-overlap F1) is kept as best.pt. latest.pt holds everything needed
 to resume.
 
+With --with-context ("open book") every question comes with a story passage:
+"Context: <passage>\nQuestion: ...\nAnswer: ...". Usually the passage holds the answer (it
+contains the question's evidence quote); for a fraction of questions (--negative-frac) it is a
+passage that does not, and the answer is "The story does not say." That teaches the model to
+answer from the passage and to say so when the passage is the wrong one, which lets
+eval_qa.py and chat.py move on to the next passage the search found. Passages are drawn
+again every epoch.
+
 Usage:
     python scripts/finetune_qa.py                 # starts from models/checkpoints/verdict_story/best.pt
     python scripts/finetune_qa.py --resume        # continue an interrupted run
+    python scripts/finetune_qa.py --with-context --init-from models/checkpoints/verdict_facts/best.pt \
+        --rehearsal-data verdict_facts --run-name verdict_rag
 """
 import argparse
 import csv
@@ -35,7 +45,8 @@ from dataloader import PROCESSED_DIR, TokenDataset
 from eval_qa import evaluate
 from inference import load_tokenizer
 from model import GPT, GPTConfig, get_device
-from qa_format import IGNORE, encode_example, load_split
+from qa_format import IGNORE, UNANSWERABLE, encode_example, load_split
+from retrieval import Conversation, build_index, gold_passages
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -57,9 +68,48 @@ def parse_args() -> argparse.Namespace:
                    help="dataset folder under data/processed used for rehearsal (verdict_facts adds the statements)")
     p.add_argument("--eval-every", type=int, default=2, help="evaluate every N epochs")
     p.add_argument("--patience", type=int, default=4, help="stop after N evals without a better val F1 (0 = never)")
+    p.add_argument("--with-context", action="store_true",
+                   help="open book: give every question a story passage found by retrieval.py")
+    p.add_argument("--negative-frac", type=float, default=0.2,
+                   help="with --with-context: share of answerable questions shown a passage WITHOUT the answer")
     p.add_argument("--seed", type=int, default=1337)
     p.add_argument("--resume", action="store_true")
     return p.parse_args()
+
+
+class ContextPicker:
+    """Chooses the passage that goes with each question when training with --with-context."""
+
+    def __init__(self, tok, rows: list[dict], negative_frac: float):
+        self.index = build_index(tok)
+        self.passages = self.index.passages
+        self.negative_frac = negative_frac
+        self.gold, self.searched = [], []
+        for r in rows:
+            found = [i for i, _ in Conversation(self.index).search(r["question"], k=3)]
+            self.searched.append(found)
+            gold = gold_passages(self.passages, r.get("evidence", [])) if r["type"] != "unanswerable" else set()
+            self.gold.append(sorted(gold))
+        missing = sum(1 for r, g in zip(rows, self.gold) if r["type"] != "unanswerable" and not g)
+        if missing:
+            print(f"note: {missing} answerable questions have no passage containing their evidence; "
+                  f"they use the passage the search finds instead")
+
+    def pick(self, i: int, row: dict, rng: random.Random | None) -> tuple[str, str]:
+        """(context, answer) for row i. rng=None gives the fixed choice used for validation."""
+        if row["type"] == "unanswerable":
+            # what the search would really return for it; the answer stays "the story does not say"
+            return self.passages[self.searched[i][0]], row["answer"]
+        gold = self.gold[i] or self.searched[i][:1]
+        if rng is None:
+            return self.passages[gold[0]], row["answer"]
+        if rng.random() < self.negative_frac:
+            wrong = [j for j in range(len(self.passages)) if j not in gold]
+            # half the time a passage the search ranked high (a hard, realistic mistake)
+            near = [j for j in self.searched[i] if j not in gold]
+            j = rng.choice(near) if near and rng.random() < 0.5 else rng.choice(wrong)
+            return self.passages[j], UNANSWERABLE
+        return self.passages[rng.choice(gold)], row["answer"]
 
 
 def make_batch(examples: list[tuple[list[int], list[int]]], pad_id: int, device) -> tuple[torch.Tensor, torch.Tensor]:
@@ -144,8 +194,18 @@ def main() -> None:
 
     # ---- data ----
     train_rows, val_rows = load_split("train"), load_split("val")
-    train_ex = [encode_example(tok, r["question"], r["answer"]) for r in train_rows]
-    val_ex = [encode_example(tok, r["question"], r["answer"]) for r in val_rows]
+    train_picker = ContextPicker(tok, train_rows, args.negative_frac) if args.with_context else None
+    val_picker = ContextPicker(tok, val_rows, args.negative_frac) if args.with_context else None
+
+    def encode_rows(rows, picker, rng):
+        if picker is None:
+            return [encode_example(tok, r["question"], r["answer"]) for r in rows]
+        examples = []
+        for i, r in enumerate(rows):
+            context, answer = picker.pick(i, r, rng)
+            examples.append(encode_example(tok, r["question"], answer, context, config.block_size))
+        return examples
+
     story_bin = PROCESSED_DIR / args.rehearsal_data / "train.bin"
     if not story_bin.exists():
         sys.exit(f"Missing {story_bin.parent}. Run: python scripts/prepare_data.py --dataset {args.rehearsal_data}")
@@ -159,6 +219,8 @@ def main() -> None:
     optimizer = model.configure_optimizer(lr=args.lr, weight_decay=args.weight_decay, device_type=device.type)
     story_train = TokenDataset(story_bin, config.block_size, random_windows=True)
     story_eval = TokenDataset(story_bin, config.block_size, random_windows=False)
+    train_ex = encode_rows(train_rows, train_picker, random.Random(args.seed))
+    val_ex = encode_rows(val_rows, val_picker, None)  # fixed: the passage that holds the answer
 
     steps_per_epoch = math.ceil(len(train_ex) / args.batch_size)
     total_steps = args.epochs * steps_per_epoch
@@ -182,7 +244,9 @@ def main() -> None:
     print(f"{len(train_ex)} training questions, {len(val_ex)} validation questions, "
           f"{steps_per_epoch} steps per epoch, up to {args.epochs} epochs ({total_steps} steps)")
     print(f"lr {args.lr}, dropout {args.dropout}, story weight {args.story_weight}, "
-          f"evaluating every {args.eval_every} epochs\n")
+          f"evaluating every {args.eval_every} epochs")
+    print(f"open book: each question comes with a retrieved passage ({args.negative_frac:.0%} with a passage "
+          f"that lacks the answer)\n" if args.with_context else "closed book: questions only\n")
 
     lm = SimpleNamespace(model=model, config=config, device=device)  # what evaluate() needs
 
@@ -205,7 +269,7 @@ def main() -> None:
         t0 = time.time()
         v_loss = answer_loss(model, val_ex, pad_id, device, args.batch_size)
         s_loss = story_loss(model, story_eval, device)
-        scores = evaluate(lm, tok, val_rows, show=False)
+        scores = evaluate(lm, tok, val_rows, show=False, index=val_picker.index if val_picker else None)
         model.train()
         recent = history[-steps_per_epoch * args.eval_every:]
         record = {"epoch": epoch, "step": step, "val_answer_loss": v_loss, "story_loss": s_loss,
@@ -252,6 +316,8 @@ def main() -> None:
     pbar = tqdm(total=total_steps, initial=step, unit="step", dynamic_ncols=True)
     stopped = False
     for epoch in range(start_epoch, args.epochs):
+        if train_picker and epoch > 0:
+            train_ex = encode_rows(train_rows, train_picker, random.Random(args.seed + epoch))  # new passages
         order = list(range(len(train_ex)))
         random.Random(args.seed + epoch).shuffle(order)          # new question order each epoch
         for b in range(steps_per_epoch):

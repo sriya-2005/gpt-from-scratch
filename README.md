@@ -32,6 +32,25 @@ python -m venv .venv
 | QA fine-tuning | `scripts/finetune_qa.py` |
 | QA evaluation | `scripts/eval_qa.py --ckpt <checkpoint> --split val` |
 
+### Open book: answering from retrieved passages, with conversation memory
+
+The closed-book model barely answers new wordings, so a second mode looks the answer up first.
+The story is cut into 130-token passages and each question is matched to them with BM25
+keyword search (`scripts/retrieval.py`, written from scratch; the hand-written fact statements
+are indexed with the passages they describe). The model reads the best passage and answers
+from it, moving on to the 2nd and 3rd passage if it says the passage does not contain the
+answer. Earlier questions are part of the search, so follow-ups such as "How did he die?"
+after "Who was Stroud?" still find the right passage.
+
+| Step | Command |
+|---|---|
+| Search quality (single questions and follow-ups) | `python scripts/eval_retrieval.py` |
+| Fine-tune with passages | `python scripts/finetune_qa.py --with-context --init-from models/checkpoints/verdict_facts/best.pt --rehearsal-data verdict_facts --run-name verdict_rag` |
+| Evaluate | `python scripts/eval_qa.py --ckpt models/checkpoints/verdict_rag/best.pt --split val` |
+| Chat | `python scripts/chat.py --ckpt models/checkpoints/verdict_rag/best.pt` (`--search-only` without a model) |
+
+`data/qa/followups.jsonl` holds ten multi-turn conversations used to test the follow-up search.
+
 `data/qa/` holds the hand-checked questions (every answer cites an exact quote from the
 story), the reworded fact statements, the frozen train/val/test split and the held-out
 probe questions. Results are in `logs/` and `models/checkpoints/*/log.csv`.

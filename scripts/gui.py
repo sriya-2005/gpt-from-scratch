@@ -1,8 +1,18 @@
 """Desktop GUI for testing the trained GPT model, with live token-by-token generation.
 
+The Mode dropdown switches between:
+  Generate text        - continue a prompt, token by token
+  Ask about the story  - a conversation about "The Verdict": each question is searched in the
+                         story (follow-ups use the earlier questions) and the model answers from
+                         the passage found. Needs a checkpoint fine-tuned with --with-context.
+  Quote the story      - the same search, answering with the best-matching sentences of the
+                         passage instead of a model answer (no model needed)
+
 Usage:
     python scripts/gui.py                                          # loads the newest best.pt
     python scripts/gui.py models/checkpoints/verdict/latest.pt     # loads this checkpoint
+    python scripts/gui.py models/checkpoints/verdict_rag/best.pt --ask   # opens in "Ask about the story"
+    python scripts/gui.py --quote                                         # opens in "Quote the story"
 """
 import queue
 import random
@@ -13,11 +23,22 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+from eval_qa import PASSAGES_TO_TRY, answer_from_passages
 from inference import (CKPT_DIR, ROOT, SamplingParams, find_checkpoints, load_model, load_tokenizer,
                        stream_generate)
+from retrieval import Conversation, build_index, is_followup
 
 POLL_MS = 25
 TOKEN_COLORS = ("#dbeafe", "#fde68a")  # alternating backgrounds when showing token boundaries
+MODES = ("Generate text", "Ask about the story", "Quote the story (no model)")
+EXAMPLE_QUESTIONS = (
+    "Who is Jack Gisburn?", "Who did he marry?", "Was she wealthy?",
+    "Who was Stroud?", "How did he die?", "What was the last thing he made?",
+    "Who is Victor Grindle?", "Who recommended him to paint Stroud?",
+    "What picture hung in Jack's private room?", "Who made it?", "How did Jack get it?",
+    "Why did Jack Gisburn give up painting?", "Will he begin painting again?",
+    "Who is Hermia Croft?", "What did she say about it?",
+)
 
 
 class Slider(ttk.Frame):
@@ -60,6 +81,8 @@ class App(tk.Tk):
         self.stop_event = threading.Event()
         self.events: queue.Queue = queue.Queue()
         self.token_parity = 0
+        self.index = None         # story passages for the chat modes, built on first use
+        self.conversation = None
 
         self._build_ui()
         self._refresh_checkpoints()
@@ -80,6 +103,11 @@ class App(tk.Tk):
 
         top = ttk.Frame(self, padding=(10, 10, 10, 4))
         top.pack(fill="x")
+        ttk.Label(top, text="Mode:").pack(side="left")
+        self.mode_var = tk.StringVar(value=MODES[0])
+        mode_combo = ttk.Combobox(top, textvariable=self.mode_var, values=MODES, width=20, state="readonly")
+        mode_combo.pack(side="left", padx=(6, 14))
+        mode_combo.bind("<<ComboboxSelected>>", lambda e: self._show_mode())
         ttk.Label(top, text="Checkpoint:").pack(side="left")
         self.ckpt_var = tk.StringVar()
         self.ckpt_combo = ttk.Combobox(top, textvariable=self.ckpt_var, width=60, state="readonly")
@@ -96,8 +124,9 @@ class App(tk.Tk):
         self.status = ttk.Label(self, text="Ready", relief="sunken", anchor="w", padding=(8, 2))
         self.status.pack(fill="x", side="bottom")
 
-        body = ttk.Frame(self, padding=(10, 0, 10, 0))
+        body = self.gen_body = ttk.Frame(self, padding=(10, 0, 10, 0))
         body.pack(fill="both", expand=True)
+        self._build_chat()
 
         # right: controls
         side = ttk.Frame(body, width=260)
@@ -159,8 +188,66 @@ class App(tk.Tk):
             self.output.tag_configure(f"tok{i}", background=color)
         self.output.tag_configure("note", foreground="#999999", font=("Segoe UI", 9, "italic"))
 
-        self.bind("<Control-Return>", lambda e: (self._generate(), "break")[1])
+        self.bind("<Control-Return>", lambda e: (self._generate(), "break")[1]
+                  if self.mode_var.get() == MODES[0] else None)
         self.bind("<Escape>", lambda e: self._stop())
+
+    def _build_chat(self):
+        """The conversation view used by the two story modes (hidden until one is chosen)."""
+        chat = self.chat_body = ttk.Frame(self, padding=(10, 0, 10, 0))
+        self.chat_hint = ttk.Label(chat, foreground="#666", font=("Segoe UI", 9))
+        self.chat_hint.pack(anchor="w", pady=(0, 4))
+
+        ask_row = ttk.Frame(chat)
+        ask_row.pack(fill="x", side="bottom", pady=(6, 8))
+        ttk.Label(ask_row, text="Question:", font=("Segoe UI", 9, "bold")).pack(side="left")
+        self.question_var = tk.StringVar()
+        # editable dropdown: pick an example or type your own
+        self.question_combo = ttk.Combobox(ask_row, textvariable=self.question_var, values=EXAMPLE_QUESTIONS,
+                                           font=("Segoe UI", 11))
+        self.question_combo.pack(side="left", fill="x", expand=True, padx=6)
+        self.question_combo.bind("<Return>", lambda e: self._ask())
+        self.question_combo.bind("<<ComboboxSelected>>", lambda e: self._ask())
+        self.ask_btn = ttk.Button(ask_row, text="Ask  (Enter)", style="Accent.TButton", command=self._ask)
+        self.ask_btn.pack(side="left")
+        ttk.Button(ask_row, text="New conversation", command=self._new_conversation).pack(side="left", padx=(6, 0))
+        self.show_passage = tk.BooleanVar(value=True)
+        ttk.Checkbutton(ask_row, text="Show passage", variable=self.show_passage).pack(side="left", padx=(8, 0))
+
+        frame = ttk.Frame(chat)
+        frame.pack(fill="both", expand=True)
+        self.transcript = tk.Text(frame, wrap="word", font=("Segoe UI", 11), relief="solid", borderwidth=1,
+                                  padx=10, pady=8, spacing1=2, spacing3=2, state="disabled")
+        scroll = ttk.Scrollbar(frame, command=self.transcript.yview)
+        self.transcript.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        self.transcript.pack(side="left", fill="both", expand=True)
+        self.transcript.tag_configure("you", font=("Segoe UI", 11, "bold"))
+        self.transcript.tag_configure("answer", foreground="#1d4ed8")
+        self.transcript.tag_configure("source", foreground="#888888", font=("Segoe UI", 9, "italic"))
+        self.transcript.tag_configure("passage", foreground="#555555", font=("Georgia", 10), lmargin1=24,
+                                      lmargin2=24)
+
+    def _show_mode(self):
+        """Swap the generation view and the conversation view."""
+        chat = self.mode_var.get() != MODES[0]
+        (self.gen_body if chat else self.chat_body).pack_forget()
+        (self.chat_body if chat else self.gen_body).pack(fill="both", expand=True)
+        if chat:
+            self._update_chat_hint()
+            self.question_combo.focus_set()
+
+    def _update_chat_hint(self):
+        if self.mode_var.get() == MODES[2]:
+            text = "Answers by quoting the sentences of the story that best match each question (no model needed)."
+        elif self.lm is None:
+            text = "Load a checkpoint fine-tuned with --with-context (e.g. models/checkpoints/verdict_rag/best.pt)."
+        elif not self.lm.train_args.get("with_context"):
+            text = ("This checkpoint was not fine-tuned with --with-context, so it will ignore the passage. "
+                    "Pick a verdict_rag checkpoint.")
+        else:
+            text = "The model answers from the passage the search finds; follow-ups are searched in context."
+        self.chat_hint.config(text=text + "  Pick an example question or type your own.")
 
     # ---------- checkpoints ----------
     def _refresh_checkpoints(self):
@@ -248,6 +335,65 @@ class App(tk.Tk):
         self.worker = threading.Thread(target=work, daemon=True)
         self.worker.start()
 
+    # ---------- conversation about the story ----------
+    def _ask(self):
+        question = self.question_var.get().strip()
+        if not question or self._busy():
+            return
+        search_only = self.mode_var.get() == MODES[2]
+        if not search_only and self.lm is None:
+            messagebox.showinfo("No model", "Load a checkpoint first, or switch the mode to Quote the story.")
+            return
+        self.question_var.set("")
+        self._write(f"You: {question}\n", "you")
+        self._set_busy(True, "Searching the story…" if search_only else "Searching and answering…")
+
+        def work():
+            try:
+                tok = self.tokenizer or load_tokenizer()
+                if self.index is None:
+                    self.index = build_index(tok)
+                if self.conversation is None:
+                    self.conversation = Conversation(self.index)
+                conv, passages = self.conversation, self.index.passages
+                followup = bool(conv.turns) and is_followup(question)
+                ids = [i for i, _ in conv.search(question, k=PASSAGES_TO_TRY)]
+                t0 = time.time()
+                if search_only:
+                    answer, used = conv.best_sentences(question, ids[0]), ids[0]
+                else:
+                    answer, n = answer_from_passages(self.lm, tok, question, [passages[i] for i in ids])
+                    used = None if n is None else ids[n]
+                conv.add(question, answer or "", ids)
+                self.events.put(("answer", (answer, used, ids, followup, time.time() - t0)))
+            except Exception as e:  # noqa: BLE001
+                self.events.put(("error", f"Answering failed:\n{e}"))
+
+        self.worker = threading.Thread(target=work, daemon=True)
+        self.worker.start()
+
+    def _new_conversation(self):
+        if self.conversation is not None:
+            self.conversation.reset()
+        self._write("— new conversation —\n\n", "source")
+
+    def _write(self, text: str, tag: str):
+        self.transcript.configure(state="normal")
+        self.transcript.insert("end", text, tag)
+        self.transcript.configure(state="disabled")
+        self.transcript.see("end")
+
+    def _on_answer(self, payload):
+        answer, used, ids, followup, elapsed = payload
+        quoting = self.mode_var.get() == MODES[2]
+        self._write(f"{'Story' if quoting else 'Model'}: {answer}\n", "answer")
+        source = f"passage {used}" if used is not None else f"not found in passages {', '.join(map(str, ids))}"
+        self._write(f"[{source}{'  ·  read as a follow-up' if followup else ''}]\n", "source")
+        if used is not None and self.show_passage.get():
+            self._write(self.index.passages[used] + "\n", "passage")
+        self._write("\n", "source")
+        self._set_busy(False, f"Answered in {elapsed:.1f}s.")
+
     def _stop(self):
         self.stop_event.set()
 
@@ -270,7 +416,9 @@ class App(tk.Tk):
         self.lm, self.tokenizer = payload
         self.model_info.config(text=f"{self.lm.path.relative_to(ROOT) if self.lm.path.is_relative_to(ROOT) else self.lm.path}"
                                     f"   —   {self.lm.describe()}")
-        self._set_busy(False, "Model loaded. Enter a prompt and press Generate.")
+        self._update_chat_hint()
+        self._set_busy(False, "Model loaded. Enter a prompt and press Generate."
+                       if self.mode_var.get() == MODES[0] else "Model loaded. Ask a question.")
 
     def _on_token(self, payload):
         text, n, elapsed = payload
@@ -307,8 +455,14 @@ class App(tk.Tk):
         self.status.config(text=status)
         self.gen_btn.config(state="disabled" if busy else "normal")
         self.load_btn.config(state="disabled" if busy else "normal")
+        self.ask_btn.config(state="disabled" if busy else "normal")
         self.stop_btn.config(state="normal" if busy else "disabled")
 
 
 if __name__ == "__main__":
-    App(sys.argv[1] if len(sys.argv) > 1 else None).mainloop()
+    args = [a for a in sys.argv[1:] if a not in ("--ask", "--quote")]
+    app = App(args[0] if args else None)
+    if "--ask" in sys.argv or "--quote" in sys.argv:  # open straight in a story mode
+        app.mode_var.set(MODES[2] if "--quote" in sys.argv else MODES[1])
+        app._show_mode()
+    app.mainloop()

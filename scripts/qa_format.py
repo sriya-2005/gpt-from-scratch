@@ -15,20 +15,36 @@ UNANSWERABLE = "The story does not say."
 IGNORE = -100  # label value that F.cross_entropy skips: "don't grade the model on this token"
 
 
-def prompt_text(question: str) -> str:
-    """What the model is given. It must continue with the answer."""
-    return f"Question: {question.strip()}\nAnswer:"
+def prompt_text(question: str, context: str | None = None) -> str:
+    """What the model is given. It must continue with the answer.
+
+    With a context (a passage found by retrieval.py) the model answers from that passage;
+    without one it has to answer from what it remembers of the story."""
+    if context is None:
+        return f"Question: {question.strip()}\nAnswer:"
+    return f"Context: {context.strip()}\nQuestion: {question.strip()}\nAnswer:"
 
 
-def encode_example(tok, question: str, answer: str) -> tuple[list[int], list[int]]:
+def fit_prompt(tok, question: str, context: str | None, max_prompt_tokens: int) -> list[int]:
+    """Token ids of the prompt, cutting the end of the context if it would not fit."""
+    ids = tok.encode(prompt_text(question, context))
+    if context is None or len(ids) <= max_prompt_tokens:
+        return ids
+    ctx_ids = tok.encode(context.strip())
+    ctx_ids = ctx_ids[:max(0, len(ctx_ids) - (len(ids) - max_prompt_tokens))]
+    return tok.encode(prompt_text(question, tok.decode(ctx_ids)))
+
+
+def encode_example(tok, question: str, answer: str, context: str | None = None,
+                   max_len: int = 256) -> tuple[list[int], list[int]]:
     """Return (input ids, labels) for one training example.
 
-    The labels copy the answer tokens and mark every question token as IGNORE, so the loss
-    only measures how well the model produces the answer. The answer ends with
+    The labels copy the answer tokens and mark every question (and context) token as IGNORE,
+    so the loss only measures how well the model produces the answer. The answer ends with
     <|endoftext|> so the model learns where to stop.
     """
-    prompt_ids = tok.encode(prompt_text(question))
     answer_ids = tok.encode(" " + answer.strip()) + [tok.eos_token_id]
+    prompt_ids = fit_prompt(tok, question, context, max_len + 1 - len(answer_ids))
     ids = prompt_ids + answer_ids
     labels = [IGNORE] * len(prompt_ids) + answer_ids
     # next-token prediction: the input at position t is used to predict the label at t+1

@@ -8,7 +8,7 @@ Usage:
 import argparse
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterator
 
@@ -41,6 +41,7 @@ class LoadedModel:
     path: Path
     step: int | None
     val_loss: float | None
+    train_args: dict = field(default_factory=dict)  # the fine-tuning options, e.g. with_context
 
     def describe(self) -> str:
         c = self.config
@@ -71,7 +72,7 @@ def load_model(path: Path, device: torch.device | None = None) -> LoadedModel:
     val_loss = ckpt.get("val_loss")
     if val_loss is None and ckpt.get("evals"):
         val_loss = ckpt["evals"][-1]["val_loss"]
-    return LoadedModel(model, config, device, Path(path), ckpt.get("step"), val_loss)
+    return LoadedModel(model, config, device, Path(path), ckpt.get("step"), val_loss, ckpt.get("args") or {})
 
 
 def load_tokenizer() -> GPT2TokenizerFast:
